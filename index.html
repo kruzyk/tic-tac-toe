@@ -1,0 +1,111 @@
+<style>
+  .board {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 auto;
+    width: 90px;
+  }
+  .cell {
+    width: 30px;
+    height: 30px;
+    border: 1px solid black;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    justify-items: center;
+  }
+</style>
+
+<div class="board">
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"></script>
+<script>
+  var players = ['o', 'x'];
+  var round = 0;
+  // Rozdzielamy ciąg znaków po pustym ciągu znaków i każdy znak ląduje
+  // w osobnej komórce w tabeli (array);
+  var board = '         '.split('');
+  window.addEventListener('click', function (event) {
+    var clickedElement = event.target;
+    if (!event.target.classList.contains('cell')) {
+      return;
+    }
+    // Odczytywanie indeksu klikniętej komórki w obrębie rodzica
+    var clickedIndex = Array.from(
+      clickedElement.parentElement.children
+    ).indexOf(clickedElement);
+    if (board[clickedIndex] !== ' ') {
+      return;
+    }
+    // Ustawianie nowego symbolu w tablicy reprezentującej stan rozgrywki
+    board[clickedIndex] = players[round % players.length];
+    // Przenoszenie stanu rozgrywki na ekran
+    clickedElement.innerText = board[clickedIndex];
+    // Podbijanie numeru rundy
+    round += 1;
+    var result = whatHeppened(board, players[(round - 1) % players.length]);
+    if (result !== 'in progress') {
+      console.log(result);
+    }
+  })
+  /**
+   * - 'x wins'
+   * - 'o wins'
+   * - 'draw'
+   * - 'in progress'
+   */
+  function whatHeppened(board, symbol) {
+    var rows = _.chunk(board, 3);
+    if (
+      symbolWinsInCollection(symbol, rows) ||
+      symbolWinsInCollection(symbol, getColumns(board)) ||
+      symbolWinsInCollection(symbol, getDiagonals(board))
+    ) {
+      return symbol + ' wins';
+    }
+    return 'in progress';
+  }
+  function getDiagonals(board) {
+    return [
+      board.filter((cell, index) => index % 4 === 0),
+      board.filter((cell, index) => (index * 2) % 4 === 0).filter((cell, index) => (index % 2) !== 0)
+    ]
+  }
+  function symbolWinsInCollection(symbol, rows) {
+    return rows.some(function (row) {
+      return row.every(function (cell) {
+        return cell === symbol;
+      })
+    })
+  }
+  function getColumns(board) {
+    var columns = [];
+    for (var i = 0; i < 3; i += 1) {
+      var column = [];
+      for (var j = i; j < 9; j += 3) {
+        column.push(board[j])
+      }
+      // 1 element z pierwszej kolumny - 0
+      // 2 element z pierwszej kolumny - 3
+      // 3 - 6
+      // 1 element z drugiej kolumny - 1
+      // 2 - 4
+      // 3 - 7
+      // 1 element z trzeciej kolumny - 2
+      // 2 - 5
+      // 3 - 8
+      columns.push(column);
+    }
+    return columns;
+  }
+</script>
